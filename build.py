@@ -41,7 +41,7 @@ fd.close()
 
 if 1:
     os.system("mono "+ue4path+'/Engine/Binaries/DotNET/UnrealBuildTool.exe '+pname+' Development Linux -project="'+pfile+\
-    '" - -progress -noubtmakefiles -NoHotReloadFromIDE')
+    '" -editorrecompile -progress -noubtmakefiles -NoHotReloadFromIDE')
 
 fd=open(path_info['project_path']+'/run.sh','w')
 print('#!/bin/bash',file=fd)
@@ -51,5 +51,5 @@ print('export PATH_FILE='+os.path.abspath('path.cfg'),file=fd)
 print('Engine/Binaries/Linux/UE4Editor "'+pfile+'" -nocore -project='+pfile,file=fd)
 fd.close()
 assert(os.system('chmod +x '+path_info['project_path']+'/run.sh')==0)
-
+# /local/UnrealEngine/Engine/Binaries/DotNET/UnrealBuildTool.exe testprj7_14_4 Development Linux -project="/project_files/testprj7_14_4/testprj7_14_4.uproject" -editorrecompile -progress -noubtmakefiles -NoHotReloadFromIDE
 #	mono /local/ori/GameEngines/UnrealEngine/Engine/Binaries/DotNET/UnrealBuildTool.exe testplugin Development Linux -project="/local/learn/ur4/testplugin/testplugin.uproject" -editorrecompile -progress -noubtmakefiles -NoHotReloadFromIDE

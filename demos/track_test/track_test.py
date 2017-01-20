@@ -38,7 +38,7 @@ case_params4['name']='high_wind_high_alt'
 case_params4['camera_height']=8
 
 case_params_list=[case_params1,case_params3,case_params4,case_params2]
-#case_params_list=[case_params1]
+case_params_list=[case_params4]
 
 save_path='/tmp/out_ue4'
 
@@ -107,14 +107,24 @@ def main_loop(gworld):
             shutil.rmtree(save_path)
         os.makedirs(save_path)
     
-    #camera_actor=ph.FindActorByName(gworld,'CameraActor_2',1) 
+    ex_camera_actor=ph.FindActorByName(gworld,'CameraActor_2',1) 
     camera_actor=ph.FindActorByName(gworld,'Parrot_Drone_0',1) 
+
+    PlayerStart=ph.FindActorByName(gworld,'PlayerStart_1',1)
+    loc=ph.GetActorLocation(PlayerStart) #PlayerController_0 PlayerState_0 PlayerStart_1 
+    ph.SetActorLocation(ph.FindActorByName(gworld,'PlayerController_0',0),(loc[0],loc[1],loc[2]+1000))
+
     if camera_actor is None:
         print('could not find Parrot_Drone_0 yeilding forever')
         while 1:
             yield
     camera_texture=ph.GetTextureByName('/Game/TextureRenderTarget2D_0')
     #tick_actor=ph.FindActorByName(gworld,'PyServerTickActor_0')
+    
+    
+    #ph.MoveToCameraActor(tick_actor,camera_actor)
+    
+    
     wind_actor=ph.FindActorByName(gworld,'WindDirectionalSource1') 
     camera_initial_location=ph.GetActorLocation(camera_actor)
     camera_initial_rot=ph.GetActorRotation(camera_actor)
@@ -132,7 +142,6 @@ def main_loop(gworld):
             loc=ph.GetActorLocation(wind_actor)
             ph.SetActorLocation(wind_actor,(loc[0],loc[1],loc[2]+1000))
             
-            #ph.MoveToCameraActor(tick_actor,camera_actor)
             tic=time.time()
             while time.time()-tic>10:
                 yield
@@ -168,10 +177,8 @@ def main_loop(gworld):
                 loc=ph.GetActorLocation(camera_actor)
                 ph.SetActorLocation(camera_actor,(direction*dirx*speed+loc[0],direction*diry*speed+loc[1],camera_initial_location[2]+case_params['camera_height']*100))
                 yield
-                print('-----4')
                 img=cv2.resize(ph.GetTextureData(camera_texture),(512,512),cv2.INTER_LINEAR)
                 #img=ph.TakeScreenshot() 
-                print('-----5')
                 if img is None:
                     print('got None im')
                 else:

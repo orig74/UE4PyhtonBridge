@@ -9,6 +9,9 @@ if 'PATH_FILE' in os.environ:
     print('loading libfile',libfile)
 else:
     libfile=''
+#libfile=''
+print('start loading lib file')
 libc=ctypes.CDLL(libfile,mode=ctypes.RTLD_GLOBAL)
+print('done loading lib file')
 #libc.calledfrompython.argtypes=[]
 #libc.calledfrompython.restype=ctypes.c_int
