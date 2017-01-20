@@ -1,0 +1,5 @@
+*.pyc
+*.swp
+path.cfg
+src/Wrappers/entry_point.py
+src/cpp/PyConfig.h
