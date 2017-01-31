@@ -33,6 +33,14 @@ libfile=sysconfig.get_config_var('LDLIBRARY')
 include_path=sysconfig.get_path('include')
 file_dir=os.path.abspath(os.path.dirname(__file__))
 
+pylibsearch=\
+"import sysconfig;from os import path;"+\
+"so=sysconfig.get_config_var('LDLIBRARY');"+\
+"p1=sysconfig.get_config_var('LIBPL')+'/'+so;"+\
+"p2=sysconfig.get_config_var('LIBDIR')+'/'+so;"+\
+"print(p1 if path.isfile(p1) else p2 if path.isfile(p2) else 'NULL')"
+
+
 if project_mode:
     pfile=glob.glob(pathdata['project_path']+'/*.uproject')[0]
     pdata=json.load(open(pfile))
@@ -63,7 +71,7 @@ if project_mode:
     print('export UE4EDITOR_SO='+pathdata['project_path']+'/Binaries/Linux/libUE4Editor-'+pname+'.so',file=fd)
     print('export BRIDGE_ENTRY_NAME='+args.entry_point,file=fd)
     print('export BRIDGE_ENTRY_PATH='+pathdata['entry_path'],file=fd)
-    print("""export PYTHON_LIB=`python3 -c"import sysconfig;print(sysconfig.get_config_var('LIBPL')+'/'+sysconfig.get_config_var('LDLIBRARY'))"`""",file=fd)
+    print("""export PYTHON_LIB=`python3 -c"%s"`"""%pylibsearch,file=fd)
     print("export SYSPATH="+file_dir+"/src",file=fd)
     print('Engine/Binaries/Linux/UE4Editor "'+pfile+'" -nocore -project='+pfile,file=fd)
     fd.close()
@@ -86,7 +94,7 @@ if stand_alone_game:
     print('#This is auto generated script Don\'t Edit!!!',file=fd)
     print('export BRIDGE_ENTRY_NAME='+args.entry_point,file=fd)
     print('export BRIDGE_ENTRY_PATH='+pathdata['entry_path'],file=fd)
-    print("""export PYTHON_LIB=`python3 -c"import sysconfig;print(sysconfig.get_config_var('LIBPL')+'/'+sysconfig.get_config_var('LDLIBRARY'))"`""",file=fd)
+    print("""export PYTHON_LIB=`python3 -c"%s"`"""%pylibsearch,file=fd)
     print("export SYSPATH="+file_dir+"/src",file=fd)
     pname=args.packed_game_name
     prunfile=pname+'/Binaries/Linux/'+pname
