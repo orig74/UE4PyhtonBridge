@@ -40,7 +40,7 @@ def GetActorsNames(uworld,bufsize=1024*10):
     ret=libc.GetActorsNames(uworld,buf,int(bufsize/sz))
     if ret==-1: return None
     names=buf[:ret*sz].decode('utf16').strip().split('\n')
-    return names 
+    return names
 
 float3type=c_float*3
 float3type_p=POINTER(float3type)
@@ -100,9 +100,31 @@ def GetTextureData(tex_ptr,channels=[0,1,2]):
         tmp_capture_mem=np.zeros(req_mem_sz,'uint8')
     ptr=tmp_capture_mem.ctypes.data_as(c_void_p)
     libc.GetTextureData(tex_ptr,ptr,req_mem_sz)
-    return tmp_capture_mem[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels] 
+    return tmp_capture_mem[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
 
-   
+
+libc.GetTextureDataf.argtypes=[c_void_p,c_void_p,c_int,c_int]
+libc.GetTextureDataf.restype=c_int
+
+tmp_capture_memf=np.array([1],'float16')
+
+def GetTextureData16f(tex_ptr,channels=[0,1,2],verbose=0):
+    global tmp_capture_memf
+    sz=int2type()
+    ret=libc.GetTextureSize2(tex_ptr,pointer(sz))
+    req_mem_sz=sz[0]*sz[1]*4# (RGBA)
+    if len(tmp_capture_memf)<req_mem_sz:
+        tmp_capture_memf=np.zeros(req_mem_sz,'float16')
+    ptr=tmp_capture_memf.ctypes.data_as(c_void_p)
+    if libc.GetTextureDataf(tex_ptr,ptr,req_mem_sz*2,verbose)==0:
+        return None
+    if verbose:
+        stats_data=tmp_capture_memf[tmp_capture_memf!=65504.0]
+        print('GetTextureData16f stats maxmin',stats_data.max(),stats_data.min())
+    return tmp_capture_memf[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
+
+
+
 
 #libc.GetTextureData.argtypes=[c_void_p,
 #def GetTextureData
@@ -118,12 +140,12 @@ def TakeScreenshot():
             tmp_capture_mem=np.zeros(req_mem_sz,'uint8')
         ptr=tmp_capture_mem.ctypes.data_as(c_void_p)
         lsize=libc.TakeScreenshot(ptr,len(tmp_capture_mem))
-        return tmp_capture_mem.reshape((sz[1],sz[0],4))[:,:,:3] 
+        return tmp_capture_mem.reshape((sz[1],sz[0],4))[:,:,:3]
 
 libc.SetWindParams.argtypes=[c_void_p,c_float,c_float]
 
-#BUG!! does not work 
-def SetWindParams(awind,speed): 
+#BUG!! does not work
+def SetWindParams(awind,speed):
     libc.SetWindParams(awind,speed,speed)
 
 libc.DeactivateActorComponent.argtypes=[c_void_p]
@@ -143,12 +165,12 @@ def GetTextureImg(txt_index=0,verbose=0,channels=[0,1,2]):
         sz=int2type()
         ret=libc.GetTextureSize(pointer(sz),txt_index,verbose)
         req_mem_sz=sz[0]*sz[1]*4# (RGBA)
-        
+
         if len(tmp_capture_mem)<req_mem_sz:
             tmp_capture_mem=np.zeros(req_mem_sz,'uint8')
         ptr=tmp_capture_mem.ctypes.data_as(c_void_p)
         libc.GetTexture(ptr,req_mem_sz,txt_index,0)
-        return tmp_capture_mem[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels] 
+        return tmp_capture_mem[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
 
 libc.GetSceneCapture2DFrustrum.argtypes=[c_void_p,POINTER(c_float),POINTER(c_float)]
 def GetSceneCapture2DNearFar(actor):
@@ -156,7 +178,3 @@ def GetSceneCapture2DNearFar(actor):
     far=c_float(-1)
     libc.GetSceneCapture2DFrustrum(actor,pointer(near),pointer(far))
     return near.value,far.value
-
-
-
-

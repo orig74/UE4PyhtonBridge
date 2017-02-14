@@ -15,7 +15,7 @@ void* StrToPtr(const char* str)
 
 ULevel* GetCurrentLevel(UWorld* uworld)
 {
-	return uworld->GetCurrentLevel();		
+	return uworld->GetCurrentLevel();
 }
 
 /*
@@ -28,7 +28,7 @@ int GetNumberOfLevelBluePrints(ULevel* level)
 UBlueprint * GetLevelIthBluePrint(ULevel* level,int index)
 {
 	TArray < class UBlueprint * > tarray= level->GetLevelBlueprints();
-	return tarray[index];	
+	return tarray[index];
 }
 
 int BlueprintGetFriendlyName(UBlueprint *bp,uint8* dstname,int dstsize)
@@ -55,7 +55,7 @@ AActor* FindActorByName(UWorld* uworld,char* name,int verbose)
 		if(verbose) UE_LOG(LogTemp, Warning, TEXT("Actor(%d): %s"),i,*ActorItr->GetName());
 		//ClientMessage(ActorItr->GetActorLocation().ToString());
 		i++;
-	}	
+	}
 	return NULL;
 }
 
@@ -69,7 +69,7 @@ int GetActorsNames(UWorld* uworld,wchar_t* outname,int max_size)
 	}
 	if(fname.Len()>=max_size) return -1;
 	for(int i=0;i<fname.Len();i++) outname[i]=fname[i];
-	return fname.Len();	
+	return fname.Len();
 }
 
 
@@ -141,8 +141,8 @@ int TakeScreenshot(void* out_ptr,int length)
 void SetWindParams(AWindDirectionalSource* awind,float speed,float strength)
 {
 	UWindDirectionalSourceComponent* windcomp=awind->GetComponent();
-	windcomp->Speed=speed;	
-	windcomp->Strength=strength;	
+	windcomp->Speed=speed;
+	windcomp->Strength=strength;
 	//FWindSourceSceneProxy * sceneProxy=windcomp->CreateSceneProxy();
 }
 
@@ -161,7 +161,7 @@ void GetSceneCapture2DFrustrum(ASceneCapture2D* actor,float* near,float* far)
 {
 	UDrawFrustumComponent *frustum=actor->GetDrawFrustum();
 	*near=frustum->MinDrawDistance;
-	*far=frustum->LDMaxDrawDistance;	
+	*far=frustum->LDMaxDrawDistance;
 }
 
 int GetTextureSize(int out_sz[2],int index,int verbose)
@@ -177,11 +177,11 @@ int GetTextureSize(int out_sz[2],int index,int verbose)
 			out_sz[1]=sy;
 			if(verbose) UE_LOG(LogTemp, Warning, TEXT("Found texture!! %d,%d"),sx,sy);
 			return sx*sy;
-		}	
+		}
 		cnt++;
 	}
 	return 0;
-	
+
 }
 
 
@@ -210,6 +210,42 @@ int GetTextureData(UTextureRenderTarget2D* TextureRenderTarget ,void* out_ptr,in
 }
 
 
+int GetTextureDataf(UTextureRenderTarget2D* TextureRenderTarget ,void* out_ptr,int length,int verbose)
+{
+	//TArray<FLinearColor> SurfData;
+	//SurfData.Init(FLinearColor(1,1,1,1),sx*sy*4*4);
+	FTextureRenderTarget2DResource* renderTarget = static_cast<FTextureRenderTarget2DResource*>(TextureRenderTarget->GameThread_GetRenderTargetResource());
+	int sx=TextureRenderTarget->SizeX;
+	int sy=TextureRenderTarget->SizeY;
+	check((sx*sy*4*2)<=length);
+	struct FReadSurfaceContext
+	{
+			FTextureRenderTarget2DResource* renderTarget;
+			void* OutData;
+			int length;
+	};
+	FReadSurfaceContext ReadSurfaceContext = {renderTarget,out_ptr,length};
+	ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
+    ReadSurfaceCommand,
+    FReadSurfaceContext, Context, ReadSurfaceContext,
+    {
+		uint32 DestStride=0;
+		void* cpuDataPtr = (void*)RHILockTexture2D(
+	        Context.renderTarget->GetTextureRHI(),
+	        0,
+	        RLM_ReadOnly,
+	        DestStride,
+	        false);
+		//UE_LOG(LogTemp, Warning, TEXT("got here %d"),__LINE__);
+		memcpy(Context.OutData,cpuDataPtr,Context.length);
+		RHIUnlockTexture2D(Context.renderTarget->GetTextureRHI(), 0, false);
+
+    });
+	//UE_LOG(LogTemp, Warning, TEXT("got here %d"),__LINE__);
+    FlushRenderingCommands();
+	return length;
+}
+
 int GetTexture(void* out_ptr,int length,int index,int verbose)
 {
 	int cnt=0;
@@ -221,13 +257,13 @@ int GetTexture(void* out_ptr,int length,int index,int verbose)
 			UTextureRenderTarget2D *TextureRenderTarget = *Itr;
 			int sx=TextureRenderTarget->SizeX,sy=TextureRenderTarget->SizeY;
 			if(verbose) UE_LOG(LogTemp, Warning, TEXT("Found texture!!"));
-			
+
 			TArray<FColor> SurfData;
 			FRenderTarget *RenderTarget = TextureRenderTarget->GameThread_GetRenderTargetResource();
 			check((sx*sy*4)<=length);
 			RenderTarget->ReadPixels(SurfData);
 			memcpy(out_ptr,reinterpret_cast<void*>(SurfData.GetData()),sx*sy*4);
-			
+
 			return sx*sy*4;
 		}
 		cnt++;
