@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 pathdata={}
 cwd=os.path.abspath('.')
-pathdata['bridge_path']=os.path.dirname(__file__)+'/src'
+pathdata['bridge_path']=os.path.abspath(os.path.dirname(__file__))+'/src'
 project_mode= args.project_path is not None
 stand_alone_game= args.packed_game_path is not None
 
