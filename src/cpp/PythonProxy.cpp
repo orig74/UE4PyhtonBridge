@@ -1,9 +1,9 @@
 #ifndef TESTING_ONLY
 #include "PyServerPrivatePCH.h"
+#include "PyServerTickActor.h"
 #include "UnrealClient.h"
 #include "ImageUtils.h"
 #include "TimerManager.h"
-#include "PyServerTickActor.h"
 #else
 #define LogTemp 0
 #define Warning 0
