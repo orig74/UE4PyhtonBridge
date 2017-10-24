@@ -1,4 +1,5 @@
 #ifndef TESTING_ONLY
+#include "PythonProxy.h"
 #include "PyServerPrivatePCH.h"
 #include "PyServerTickActor.h"
 #include "UnrealClient.h"
