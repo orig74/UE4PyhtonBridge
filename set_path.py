@@ -44,7 +44,11 @@ pylibsearch=\
 if project_mode:
     pfile=glob.glob(pathdata['project_path']+'/*.uproject')[0]
     pdata=json.load(open(pfile))
-    pname=pdata['Modules'][0]['Name']
+    if 'Modules' in pdata:
+        pname=pdata['Modules'][0]['Name']
+    else: #take the path as the project name
+        print("error no mosuls created please create an empty c++ file in the project to make it c++ project")
+        sys.exit(-1)
     prj_src_path=pathdata['project_path']+'/Source/'+pname
     #print(prj_src_path)
     dest_src_dir=prj_src_path+'/PyServer'
