@@ -38,7 +38,9 @@ def GetActorsNames(uworld,bufsize=1024*10):
     buf=b'\0'*bufsize
     sz=sizeof(c_wchar)
     ret=libc.GetActorsNames(uworld,buf,int(bufsize/sz))
-    if ret==-1: return None
+    if ret==-1: 
+        print('Error in GetActorsNames try bigger buf size')
+        return None
     names=buf[:ret*sz].decode('utf16').strip().split('\n')
     return names
 
