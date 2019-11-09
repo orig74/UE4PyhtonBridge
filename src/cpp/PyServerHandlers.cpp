@@ -65,7 +65,7 @@ int GetActorsNames(UWorld* uworld,wchar_t* outname,int max_size)
 	for (TActorIterator<AActor> ActorItr(uworld); ActorItr;++ActorItr)
 	{
 		fname+=ActorItr->GetName();
-		fname+=L"\n";
+		fname+="\n";
 	}
 	if(fname.Len()>=max_size) return -1;
 	for(int i=0;i<fname.Len();i++) outname[i]=fname[i];
@@ -157,12 +157,12 @@ void ActivateActorComponent(UActorComponent* actor,bool reset)
 }
 
 
-void GetSceneCapture2DFrustrum(ASceneCapture2D* actor,float* near,float* far)
-{
-	UDrawFrustumComponent *frustum=actor->GetDrawFrustum();
-	*near=frustum->MinDrawDistance;
-	*far=frustum->LDMaxDrawDistance;
-}
+//void GetSceneCapture2DFrustrum(ASceneCapture2D* actor,float* near,float* far)
+//{
+//	UDrawFrustumComponent *frustum=actor->GetDrawFrustum();
+//	*near=frustum->MinDrawDistance;
+//	*far=frustum->LDMaxDrawDistance;
+//}
 
 int GetTextureSize(int out_sz[2],int index,int verbose)
 {
@@ -193,7 +193,7 @@ int GetTextureSize2(UTextureRenderTarget2D *TextureRenderTarget ,int out_sz[2])
 	return sx*sy;
 }
 
-UTextureRenderTarget2D* GetTextureByName(wchar_t* name)
+UTextureRenderTarget2D* GetTextureByName(const TCHAR* name)
 {
 	return LoadObject<UTextureRenderTarget2D>(NULL, name, NULL, LOAD_None, NULL);
 }

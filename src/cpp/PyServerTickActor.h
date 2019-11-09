@@ -2,11 +2,12 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PyServerTickActor.generated.h"
 
 UCLASS()
-class APyServerTickActor : public AActor
+class MYPROJECT_API APyServerTickActor : public AActor
 {
 	GENERATED_BODY()
 	
@@ -15,12 +16,14 @@ public:
 	APyServerTickActor();
 
 	// Called when the game starts or when spawned
+protected:
 	virtual void BeginPlay() override;
 	
 	// Called every frame
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
+public:	
 	virtual void Tick( float DeltaSeconds ) override;
 
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 	
 	
 };
