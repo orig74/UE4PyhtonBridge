@@ -30,6 +30,7 @@ libc.FindActorByName.argtypes=[c_void_p,c_char_p,c_int]
 libc.FindActorByName.restype=c_void_p
 def FindActorByName(uworld,name,verbose=0):
     namebytes=name.encode('utf-8')
+    #namebytes=name.encode('utf-16-le')
     return libc.FindActorByName(uworld,namebytes,verbose)
 
 libc.GetActorsNames.argtypes=[c_void_p,c_void_p,c_int]
@@ -82,10 +83,12 @@ import numpy as np
 tmp_capture_mem=np.array([1],dtype='uint8')
 
 
-libc.GetTextureByName.argtypes=[c_wchar_p]
+libc.GetTextureByName.argtypes=[c_char_p,c_int]
 libc.GetTextureByName.restype=c_void_p
 def GetTextureByName(name):
-    return libc.GetTextureByName(name)
+    nm=name.encode('utf-16-le')
+    print('[=={}==]'.format(name),len(nm))
+    return libc.GetTextureByName(nm,1)
 
 
 
@@ -104,26 +107,26 @@ def GetTextureData(tex_ptr,channels=[0,1,2]):
     libc.GetTextureData(tex_ptr,ptr,req_mem_sz)
     return tmp_capture_mem[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
 
+if 1:
+    libc.GetTextureDataf.argtypes=[c_void_p,c_void_p,c_int,c_int]
+    libc.GetTextureDataf.restype=c_int
 
-libc.GetTextureDataf.argtypes=[c_void_p,c_void_p,c_int,c_int]
-libc.GetTextureDataf.restype=c_int
+    tmp_capture_memf=np.array([1],'float16')
 
-tmp_capture_memf=np.array([1],'float16')
-
-def GetTextureData16f(tex_ptr,channels=[0,1,2],verbose=0):
-    global tmp_capture_memf
-    sz=int2type()
-    ret=libc.GetTextureSize2(tex_ptr,pointer(sz))
-    req_mem_sz=sz[0]*sz[1]*4# (RGBA)
-    if len(tmp_capture_memf)<req_mem_sz:
-        tmp_capture_memf=np.zeros(req_mem_sz,'float16')
-    ptr=tmp_capture_memf.ctypes.data_as(c_void_p)
-    if libc.GetTextureDataf(tex_ptr,ptr,req_mem_sz*2,verbose)==0:
-        return None
-    if verbose:
-        stats_data=tmp_capture_memf[tmp_capture_memf!=65504.0]
-        print('GetTextureData16f stats maxmin',stats_data.max(),stats_data.min())
-    return tmp_capture_memf[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
+    def GetTextureData16f(tex_ptr,channels=[0,1,2],verbose=0):
+        global tmp_capture_memf
+        sz=int2type()
+        ret=libc.GetTextureSize2(tex_ptr,pointer(sz))
+        req_mem_sz=sz[0]*sz[1]*4# (RGBA)
+        if len(tmp_capture_memf)<req_mem_sz:
+            tmp_capture_memf=np.zeros(req_mem_sz,'float16')
+        ptr=tmp_capture_memf.ctypes.data_as(c_void_p)
+        if libc.GetTextureDataf(tex_ptr,ptr,req_mem_sz*2,verbose)==0:
+            return None
+        if verbose:
+            stats_data=tmp_capture_memf[tmp_capture_memf!=65504.0]
+            print('GetTextureData16f stats maxmin',stats_data.max(),stats_data.min())
+        return tmp_capture_memf[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
 
 
 

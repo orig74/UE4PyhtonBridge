@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PyServerTickActor.h"
-#include "PyServerPrivatePCH.h"
+//#include "PyServerPrivatePCH.h"
 #include "Engine.h"
 #include "PythonProxy.h"
 #include <stdio.h>
