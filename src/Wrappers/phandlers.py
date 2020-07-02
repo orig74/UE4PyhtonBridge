@@ -107,28 +107,48 @@ def GetTextureData(tex_ptr,channels=[0,1,2]):
     libc.GetTextureData(tex_ptr,ptr,req_mem_sz)
     return tmp_capture_mem[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
 
+if 0:
+    libc.GetTextureDataf.argtypes=[c_void_p,c_void_p,c_int,c_int]
+    libc.GetTextureDataf.restype=c_int
+
+    tmp_capture_memf=np.array([1],'float32')
+
+    def GetTextureData32f(tex_ptr,channels=[0,1,2],verbose=1):
+        global tmp_capture_memf
+        sz=int2type()
+        ret=libc.GetTextureSize2(tex_ptr,pointer(sz))
+        req_mem_sz=sz[0]*sz[1]*4# (RGBA float32)
+        if len(tmp_capture_memf)<req_mem_sz:
+            tmp_capture_memf=np.zeros(req_mem_sz,'float32')
+        ptr=tmp_capture_memf.ctypes.data_as(c_void_p)
+        if libc.GetTextureDataf(tex_ptr,ptr,req_mem_sz,verbose)==0:
+            return None
+        if verbose:
+            stats_data=tmp_capture_memf[tmp_capture_memf!=65504.0]
+            print('GetTextureData32f stats maxmin',stats_data.max(),stats_data.min())
+        return tmp_capture_memf[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
+
+
 if 1:
     libc.GetTextureDataf.argtypes=[c_void_p,c_void_p,c_int,c_int]
     libc.GetTextureDataf.restype=c_int
 
     tmp_capture_memf=np.array([1],'float16')
 
-    def GetTextureData16f(tex_ptr,channels=[0,1,2],verbose=0):
+    def GetTextureData32f(tex_ptr,channels=[0,1,2],verbose=1):
         global tmp_capture_memf
         sz=int2type()
         ret=libc.GetTextureSize2(tex_ptr,pointer(sz))
-        req_mem_sz=sz[0]*sz[1]*4# (RGBA)
+        req_mem_sz=sz[0]*sz[1]*4# (RGBA )
         if len(tmp_capture_memf)<req_mem_sz:
             tmp_capture_memf=np.zeros(req_mem_sz,'float16')
         ptr=tmp_capture_memf.ctypes.data_as(c_void_p)
-        if libc.GetTextureDataf(tex_ptr,ptr,req_mem_sz*2,verbose)==0:
+        if libc.GetTextureDataf(tex_ptr,ptr,req_mem_sz,verbose)==0:
             return None
         if verbose:
             stats_data=tmp_capture_memf[tmp_capture_memf!=65504.0]
-            print('GetTextureData16f stats maxmin',stats_data.max(),stats_data.min())
+            print('GetTextureData32f stats maxmin',stats_data.max(),stats_data.min())
         return tmp_capture_memf[:req_mem_sz].reshape((sz[1],sz[0],4))[:,:,channels]
-
-
 
 
 #libc.GetTextureData.argtypes=[c_void_p,

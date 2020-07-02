@@ -6,7 +6,6 @@
 #include "Runtime/CoreUObject/Public/UObject/UObjectBaseUtility.h"
 ///
 
-#pragma pack(4)
 #define V extern "C" __attribute__((visibility("default"))) 
 //extern "C" __attribute__((visibility("default"))){
 V void* StrToPtr(const char* str)
@@ -247,7 +246,8 @@ void ASceneCaptureRecorder::Tick(float DeltaTime) {
 */
 
 #if 0
-V int GetTextureDataf(UTextureRenderTarget2D* TextureRenderTarget ,void* out_ptr,int length,int verbose)
+//https://forums.unrealengine.com/development-discussion/engine-source-github/1608365-how-to-use-enqueue_render_command-instead-of-enqueue_unique_render_command_oneparameter
+V int _GetTextureDataf(UTextureRenderTarget2D* TextureRenderTarget ,void* out_ptr,int length,int verbose)
 {
 	//TArray<FLinearColor> SurfData;
 	//SurfData.Init(FLinearColor(1,1,1,1),sx*sy*4*4);
@@ -261,11 +261,12 @@ V int GetTextureDataf(UTextureRenderTarget2D* TextureRenderTarget ,void* out_ptr
 			void* OutData;
 			int length;
 	};
-	FReadSurfaceContext ReadSurfaceContext = {renderTarget,out_ptr,length};
+	FReadSurfaceContext Context = {renderTarget,out_ptr,length};
 	//ENQUEUE_UNIQUE_RENDER_COMMAND_ONEPARAMETER(
-    ENQUEUE_RENDER_COMMAND(
-    ReadSurfaceCommand,
-    FReadSurfaceContext, Context, ReadSurfaceContext,
+
+    ENQUEUE_RENDER_COMMAND(ReadSurfaceCommand)(
+    //[ReadSurfaceContext]( Context, ReadSurfaceContext)
+    [Context]( FRHICommandListImmediate& RHICmdList)
     {
 		uint32 DestStride=0;
 		void* cpuDataPtr = (void*)RHILockTexture2D(
@@ -278,23 +279,86 @@ V int GetTextureDataf(UTextureRenderTarget2D* TextureRenderTarget ,void* out_ptr
 		memcpy(Context.OutData,cpuDataPtr,Context.length);
 		RHIUnlockTexture2D(Context.renderTarget->GetTextureRHI(), 0, false);
 
-    });
-	//UE_LOG(LogTemp, Warning, TEXT("got here %d"),__LINE__);
+        });
+    //UE_LOG(LogTemp, Warning, TEXT("got here %d"),__LINE__);
     FlushRenderingCommands();
-	return length;
+    return length;
 }
-#endif 
+#endif
+#if 0
+//based on https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/Runtime/Engine/Private/UnrealClient.cpp
+V int GetTextureDataf(UTextureRenderTarget2D* TextureRenderTarget ,void* out_ptr,int length,int verbose)
+{
+    FRenderTarget* renderTarget = TextureRenderTarget->GameThread_GetRenderTargetResource();
+    int sx=renderTarget->GetSizeXY().X,sy=renderTarget->GetSizeXY().Y;
+    FIntRect InRect(0, 0, sx,sy);
+    FReadSurfaceDataFlags InFlags;
+    TArray<FLinearColor> OutImageData;
+	// Read the render target surface data back.	
+    check((sx*sy*4)<=length);
+	struct FReadSurfaceContext
+	{
+		FRenderTarget* SrcRenderTarget;
+        TArray<FLinearColor>* OutData;
+		FIntRect Rect;
+		FReadSurfaceDataFlags Flags;
+    };
 
+	//renderTarget->OutImageData.Reset();
+    OutImageData.Reset(sx*sy);
+
+	FReadSurfaceContext Context =
+	{
+		renderTarget,
+		&OutImageData,
+		InRect,
+		InFlags
+	};
+
+	ENQUEUE_RENDER_COMMAND(ReadSurfaceCommand)(
+		[Context](FRHICommandListImmediate& RHICmdList)
+		{
+			RHICmdList.ReadSurfaceData(
+				Context.SrcRenderTarget->GetRenderTargetTexture(),
+				Context.Rect,
+				*Context.OutData,
+				Context.Flags,
+				);
+		});
+	FlushRenderingCommands();
+
+    memcpy(OutImageData.GetData(),out_ptr,sx*sy*4*4);
+    
+    if(verbose) {
+        int pind=257*128;
+        UE_LOG(LogTemp, Warning, TEXT("GetTextureDataf OutImageData.Num() = %d"),OutImageData.Num());
+        UE_LOG(LogTemp, Warning, TEXT("GetTextureDataf %f %f %f %f"),
+                    OutImageData[pind].R,
+                    OutImageData[pind].G,
+                    OutImageData[pind].B,
+                    OutImageData[pind].A
+                    );
+    }
+
+	return OutImageData.Num() > 0;
+}
+#else
 V int GetTextureDataf(UTextureRenderTarget2D* TextureRenderTarget ,void* out_ptr,int length,int verbose)
 {
     int sx=TextureRenderTarget->SizeX,sy=TextureRenderTarget->SizeY;
-    TArray<FColor> SurfData;
+    TArray<FFloat16Color> SurfData;
+    SurfData.Reset(sx*sy);
     FRenderTarget *RenderTarget = TextureRenderTarget->GameThread_GetRenderTargetResource();
-    check((sx*sy*4*2)<=length);
-    RenderTarget->ReadPixels(SurfData);
+    check((sx*sy*4)<=length);
+    RenderTarget->ReadFloat16Pixels(SurfData);
     memcpy(out_ptr,reinterpret_cast<void*>(SurfData.GetData()),sx*sy*4*2);
     return sx*sy*4;
 }
+#endif
+
+
+
+
 
 V int GetTexture(void* out_ptr,int length,int index,int verbose)
 {
