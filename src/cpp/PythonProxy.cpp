@@ -55,9 +55,11 @@ void LoadPythonInterperter()
 	{
 		char tmpstr[1024];
 		UE_LOG(LogTemp, Warning, TEXT("Starting LoadPythonInterperter...\n"));
-		UE_LOG(LogTemp, Warning, TEXT("---- %d %d PYTHON_LIB=%s\n"),phandle,_Py_Initialize,getenv("PYTHON_LIB"));
+		//UE_LOG(LogTemp, Warning, TEXT("---- %d %d PYTHON_LIB=%s\n"),phandle,_Py_Initialize,getenv("PYTHON_LIB"));
+        PYRUN("print('-'*300,'running InitPythonFunctions ---------------------')")
 		InitPythonFunctions();
 		(*_Py_Initialize)();
+        PYRUN("print('-'*300,'Python initialized ---------------------')")
 		snprintf(tmpstr,1024,"import sys;sys.path.append('%s')", getenv("SYSPATH"));
 		PYRUN(tmpstr);
 	}

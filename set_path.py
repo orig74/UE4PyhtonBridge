@@ -10,7 +10,7 @@ parser.add_argument("--entry_path", help="a path where the entry_point exists")
 parser.add_argument("--project_path", help="path to unreal engine project path")
 parser.add_argument("--packed_game_path", help="path to a packed game path")
 parser.add_argument("--packed_game_name", help="path to a packed game path")
-parser.add_argument("--ue4path", help="path to the unreal engine")
+parser.add_argument("--uepath", help="path to the unreal engine")
 args = parser.parse_args()
 
 pathdata={}
@@ -20,9 +20,9 @@ project_mode= args.project_path is not None
 stand_alone_game= args.packed_game_path is not None
 
 if project_mode:
-    pathdata['UE4']=os.path.abspath(args.ue4path)
+    pathdata['UE']=os.path.abspath(args.uepath)
     pathdata['project_path']=os.path.abspath(args.project_path)
-    ue4path=pathdata['UE4']
+    uepath=pathdata['UE']
 
 if args.entry_path is not None:
     pathdata['entry_path']=os.path.abspath(args.entry_path)
@@ -72,13 +72,13 @@ if project_mode:
     fd=open(pathdata['project_path']+'/run.sh','w')
     print('#!/bin/bash',file=fd)
     print('#This is auto generated script Don\'t Edit!!!',file=fd)
-    print('cd '+ue4path,file=fd)
-    print('export UE4EDITOR_SO='+pathdata['project_path']+'/Binaries/Linux/libUE4Editor-'+pname+'.so',file=fd)
+    print('cd '+uepath,file=fd)
+    print('export UEEDITOR_SO='+pathdata['project_path']+'/Binaries/Linux/libUnrealEditor-'+pname+'.so',file=fd)
     print('export BRIDGE_ENTRY_NAME='+args.entry_point,file=fd)
     print('export BRIDGE_ENTRY_PATH='+pathdata['entry_path'],file=fd)
     print("""export PYTHON_LIB=`python3 -c"%s"`"""%pylibsearch,file=fd)
     print("export SYSPATH="+file_dir+"/src",file=fd)
-    print('Engine/Binaries/Linux/UE4Editor "'+pfile+'" -nocore -project='+pfile,file=fd)
+    print('Engine/Binaries/Linux/UnrealEditor "'+pfile+'" -nocore -project='+pfile,file=fd)
     fd.close()
     assert(os.system('chmod +x '+pathdata['project_path']+'/run.sh')==0)
     #
@@ -86,7 +86,7 @@ if project_mode:
 
     fd=open(pathdata['project_path']+'/build.sh','w')
 
-    cmd="mono "+ue4path+'/Engine/Binaries/DotNET/UnrealBuildTool.exe '+pname+' Development Linux -project="'+pfile+\
+    cmd="mono "+uepath+'/Engine/Binaries/DotNET/UnrealBuildTool.exe '+pname+' Development Linux -project="'+pfile+\
         '" -editorrecompile -progress -noubtmakefiles -NoHotReloadFromIDE'
     print('#!/bin/bash',file=fd)
     print(cmd,file=fd)
